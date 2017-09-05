@@ -20,36 +20,70 @@ function moveFiles(data = {}) {
     orderBy: 'modifiedByMeTime',
     q: `name contains '${data.name}' and mimeType contains 'video' and '${data.owner}' in owners`
   }, function (err, resp) {
-    console.log(`found ${resp.files.length} files`);
     if(err) console.log(err.message);
-    resp.files.map((file) => {
-      drive.permissions.create({
-        fileId: file.id,
-        transferOwnership: true,
-        resource: {
-          role: 'owner',
-          type: 'user',
-          emailAddress: data.target,
-        }
-      }, (err, done) => {
-        if(err) {
-          if(/Anda tak dapat membagikan/.test(err.message)) {
-            var drive2 = google.drive({
-              version: 'v2',
-              auth: oauth2Client,
-            });
-            drive2.files.trash({
-              fileId: file.id
-            }, (err, done) => {
-              if(err) console.log(file.id + ': ' + err.message);
-              else console.log(file.id + ': Deleted');
-            })
-          } else {
-            console.log(file.id + ': ' + err.message);
+
+    console.log(`found ${resp.files.length} files`);
+    var offset = 0;
+    resp.files.forEach(function(file){
+      setTimeout(function(){
+        drive.permissions.create({
+          fileId: file.id,
+          transferOwnership: true,
+          resource: {
+            role: 'owner',
+            type: 'user',
+            emailAddress: data.target,
           }
-        }
-        else console.log(file.id + ': Changed');
-      })
-    })
+        }, (err, done) => {
+          if(err) {
+            if(/Anda tak dapat membagikan/.test(err.message)) {
+              var drive2 = google.drive({
+                version: 'v2',
+                auth: oauth2Client,
+              });
+              drive2.files.trash({
+                fileId: file.id
+              }, (err, done) => {
+                if(err) console.log(file.id + ': ' + err.message);
+                else console.log(file.id + ': Deleted');
+              })
+            } else {
+              console.log(file.id + ': ' + err.message);
+            }
+          }
+          else console.log(file.id + ': Changed');
+        })
+      }, 100 + offset);
+     offset += 100;
+    });
+    // resp.files.map((file) => {
+    //   drive.permissions.create({
+    //     fileId: file.id,
+    //     transferOwnership: true,
+    //     resource: {
+    //       role: 'owner',
+    //       type: 'user',
+    //       emailAddress: data.target,
+    //     }
+    //   }, (err, done) => {
+    //     if(err) {
+    //       if(/Anda tak dapat membagikan/.test(err.message)) {
+    //         var drive2 = google.drive({
+    //           version: 'v2',
+    //           auth: oauth2Client,
+    //         });
+    //         drive2.files.trash({
+    //           fileId: file.id
+    //         }, (err, done) => {
+    //           if(err) console.log(file.id + ': ' + err.message);
+    //           else console.log(file.id + ': Deleted');
+    //         })
+    //       } else {
+    //         console.log(file.id + ': ' + err.message);
+    //       }
+    //     }
+    //     else console.log(file.id + ': Changed');
+    //   })
+    // })
   });
 }
