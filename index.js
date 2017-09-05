@@ -53,8 +53,8 @@ function moveFiles(data = {}) {
           }
           else console.log(file.id + ': Changed');
         })
-      }, 100 + offset);
-     offset += 100;
+      }, data.interval ? data.interval : 100 + offset);
+     offset += data.interval ? data.interval : 100;
     });
     // resp.files.map((file) => {
     //   drive.permissions.create({
